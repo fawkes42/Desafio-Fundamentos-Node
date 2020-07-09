@@ -1,4 +1,6 @@
+import { uuid } from 'uuidv4';
 import Transaction from '../models/Transaction';
+import CreateTransactionService from '../services/CreateTransactionService';
 
 interface Balance {
   income: number;
@@ -6,6 +8,11 @@ interface Balance {
   total: number;
 }
 
+interface CreateTransactionCTO {
+  title: string;
+  value: number;
+  type: 'income' | 'outcome';
+}
 class TransactionsRepository {
   private transactions: Transaction[];
 
@@ -14,15 +21,33 @@ class TransactionsRepository {
   }
 
   public all(): Transaction[] {
-    // TODO
+    return this.transactions;
   }
 
   public getBalance(): Balance {
-    // TODO
+    const transactions = this.all();
+    const income: number = transactions
+      .filter(transaction => transaction.type === 'income')
+      .reduce((accumulator, val) => {
+        return accumulator + val.value;
+      }, 0);
+    const outcome: number = transactions
+      .filter(transaction => transaction.type === 'outcome')
+      .reduce((accumulator, val) => {
+        return accumulator + val.value;
+      }, 0);
+    const balance: Balance = {
+      income,
+      outcome,
+      total: income - outcome,
+    };
+    return balance;
   }
 
-  public create(): Transaction {
-    // TODO
+  public create({ title, value, type }: CreateTransactionCTO): Transaction {
+    const transaction = new Transaction({ title, value, type });
+    this.transactions.push(transaction);
+    return transaction;
   }
 }
 
